@@ -5,7 +5,10 @@ Authors@R:
     person("Michael", "Frasco", , "mfrasco6@gmail.com", role = c("aut", "cre"))
 Description: This package simulates the game of blackjack, determines the optimal
   strategy under various situations, and estimates the dealer's advantage.
-License: use_mit_license()
+License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
