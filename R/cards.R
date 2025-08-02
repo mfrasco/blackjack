@@ -98,12 +98,8 @@ get_hand_total <- function(hand) {
     } else if (card[['rank']] %in% FACE_RANKS) {
       total <- total + 10
     } else {
-      if (has_ace) {
-        total <- total + 11
-      } else {
-        total <- total + 1
-        has_ace <- TRUE
-      }
+      total <- total + 1
+      has_ace <- TRUE
     }
   }
   return(list(total=total, has_ace=has_ace))
