@@ -56,6 +56,8 @@ create_game <- function(chip_stacks, num_decks) {
   game <- list()
   game[['players']] <- create_players(chip_stacks = chip_stacks)
   game[['deck']] <- shuffle_cards(num_decks = num_decks)
+  game[['running_count']] <- 0
+  game[['true_count']] <- 0
   return(game)
 }
 
@@ -67,7 +69,7 @@ create_game <- function(chip_stacks, num_decks) {
 #' @export
 place_bets <- function(game) {
   num_players <- length(game[['players']]) - 1
-  bet_size <- 1
+  bet_size <- determine_bet_size(game)
   for (player_num in 1:num_players) {
     num_chips <- game[['players']][[player_num]][['num_chips']]
     game[['players']][[player_num]][['num_chips']] <- num_chips - bet_size
@@ -87,14 +89,22 @@ deal_initial_cards <- function(game) {
   deck <- game[['deck']]
   num_players <- length(players)
   for (i in 1:num_players) {
-    players[[i]][['hands']][[1]] <- list(deck[[1]])
+    new_card <- deck[[1]]
+    game <- update_count(game, new_card)
+    players[[i]][['hands']][[1]] <- list(new_card)
     deck <- deck[-1]
   }
   for(i in 1:num_players) {
-    players[[i]][['hands']][[1]] <- c(players[[i]][['hands']][[1]], deck[1])
+    new_card <- deck[[1]]
+    if (i != num_players) {
+      game <- update_count(game, new_card)
+    }
+    players[[i]][['hands']][[1]] <- c(players[[i]][['hands']][[1]], list(new_card))
     deck <- deck[-1]
   }
-  return(list(players=players, deck=deck))
+  game[['players']] <- players
+  game[['deck']] <- deck
+  return(game)
 }
 
 #' Take Actions For All Players
@@ -103,7 +113,7 @@ deal_initial_cards <- function(game) {
 #'
 #' @return An updated game object
 #' @export
-do_player_actions <- function(game) {
+do_player_actions <- function(game, verbose=0) {
   num_players <- length(game[['players']]) - 1
   dealer_hand <- game[['players']][[num_players + 1]][['hands']][[1]]
   for (player_num in 1:num_players) {
@@ -115,13 +125,16 @@ do_player_actions <- function(game) {
       action <- determine_player_action(
         player_hand = hand, dealer_hand = dealer_hand
       )
-      print_cards(hand)
-      print_cards(dealer_hand[1])
-      print(paste0("player: ", player_num, ", hand: ", hand_index, ", action: ", action))
+      if (verbose > 2) {
+        print_cards(hand)
+        print_cards(dealer_hand[1])
+        print(paste0("player: ", player_num, ", hand: ", hand_index, ", action: ", action))
+      }
 
       if (action == SPLIT) {
         num_hands <- length(game[['players']][[player_num]][['hands']])
         player[['bets']][num_hands + 1] <- bet_size
+        player[['num_chips']] <- player[['num_chips']] - bet_size
         player[['hands']][[num_hands + 1]] <- hand[1]
         player[['hands']][[hand_index]] <- hand[-1]
       } else if (action == STAND) {
@@ -131,11 +144,13 @@ do_player_actions <- function(game) {
         hand_index = hand_index + 1
       } else {
         new_card <- game[['deck']][[1]]
+        game <- update_count(game, new_card)
         game[['deck']] <- game[['deck']][-1]
         hand <- deal_new_card(hand, new_card)
         player[['hands']][[hand_index]] <- hand
         if (action == DOUBLE) {
           player[['bets']][[hand_index]] <- 2 * bet_size
+          player[['num_chips']] <- player[['num_chips']] - bet_size
           hand_index = hand_index + 1
         } else if (is_hand_busted(hand)) {
           hand_index = hand_index + 1
@@ -200,16 +215,19 @@ dealer_has_blackjack <- function(game) {
 #'
 #' @return An updated game object
 #' @export
-do_dealer_actions <- function(game) {
+do_dealer_actions <- function(game, verbose=0) {
   num_players <- length(game[['players']])
   dealer_hand <- game[['players']][[num_players]][['hands']][[1]]
   while (should_dealer_hit(get_hand_total(dealer_hand))) {
     new_card <- game[['deck']][[1]]
+    game <- update_count(game, new_card)
     game[['deck']] <- game[['deck']][-1]
     dealer_hand <- deal_new_card(dealer_hand, new_card)
   }
-  print('dealer has ...')
-  print_cards(dealer_hand)
+  if (verbose > 2) {
+    print('dealer has ...')
+    print_cards(dealer_hand)
+  }
   game[['players']][[num_players]][['hands']][[1]] <- dealer_hand
   return(game)
 }
@@ -259,7 +277,7 @@ determine_hand_outcome <- function(player_hand, dealer_hand) {
 #'
 #' @return An updated game object
 #' @export
-update_chip_stacks <- function(game) {
+update_chip_stacks <- function(game, verbose=0) {
   num_players <- length(game[['players']])
   dealer_hand <- game[['players']][[num_players]][['hands']][[1]]
   for (player_num in 1:(num_players - 1)) {
@@ -269,7 +287,9 @@ update_chip_stacks <- function(game) {
     for (hand_index in 1:num_hands) {
       player_hand <- player[['hands']][[hand_index]]
       outcome <- determine_hand_outcome(player_hand, dealer_hand)
-      print(paste0("player: ", player_num, ", hand: ", hand_index, ", outcome: ", outcome))
+      if (verbose > 1) {
+        print(paste0("player: ", player_num, ", hand: ", hand_index, ", outcome: ", outcome))
+      }
       bet_size <- player[['bets']][hand_index]
       if (outcome == BLACKJACK) {
         net_change <- 2.5 * bet_size
@@ -282,7 +302,9 @@ update_chip_stacks <- function(game) {
       }
       current_chips <- current_chips + net_change
     }
-    print(paste0("player: ", player_num, ", num_chips: ", current_chips))
+    if (verbose > 1) {
+      print(paste0("player: ", player_num, ", num_chips: ", current_chips))
+    }
     game[['players']][[player_num]][['num_chips']] <- current_chips
   }
   return(game)
@@ -308,20 +330,65 @@ reset_round <- function(game) {
 #' Play a round a blackjack
 #'
 #' @param game An object that represents all information in the game
+#' @param verbose An intger that determines how much information is print during
+#'                a simulation. 0 means no information. A higher integer results in more printing.
 #'
 #' @return An updated game object
 #' @export
-play_round <- function(game) {
+play_round <- function(game, verbose=0) {
   game <- place_bets(game)
   game <- deal_initial_cards(game)
   if (!dealer_has_blackjack(game)) {
-    game <- do_player_actions(game)
+    game <- do_player_actions(game, verbose=verbose)
     if (is_one_player_still_active(game)) {
-      game <- do_dealer_actions(game)
+      game <- do_dealer_actions(game, verbose=verbose)
     }
   }
-  game <- update_chip_stacks(game)
+  game <- update_chip_stacks(game, verbose=verbose)
   game <- reset_round(game)
   return(game)
 }
 
+#' Add Player Chip Counts to a Vector
+#'
+#' @inheritParams play_round
+#'
+#' @return A vector where each element is the number of chips for a given player
+#' @export
+record_chip_counts <- function(game) {
+  num_players <- length(game[['players']]) - 1
+  counts <- rep(0, length=num_players)
+  for (i in 1:num_players) {
+    counts[i] <- game[['players']][[i]][['num_chips']]
+  }
+  return(counts)
+}
+
+#' Play multiple rounds of blackjack
+#'
+#' @param chip_stacks Number of chips for each player
+#' @param num_decks Number of decks of cards to use
+#' @param num_rounds An integer representing the number of rounds to play
+#' @inheritParams play_round
+#'
+#' @return An object that represents all information in the game
+#' @export
+play_rounds <- function(chip_stacks, num_decks, num_rounds, verbose=0) {
+  game <- create_game(chip_stacks = chip_stacks, num_decks = num_decks)
+  total_cards <- length(game[['deck']])
+  stop_point <- sample(round(total_cards / 8):round(total_cards / 4), 1)
+  num_players <- length(game[['players']]) - 1
+  chip_counts <- matrix(nrow=num_rounds, ncol=num_players)
+  for (round_index in 1:num_rounds) {
+    game <- play_round(game = game, verbose=verbose)
+    chip_counts[round_index, ] <- record_chip_counts(game)
+    if (length(game[['deck']]) < stop_point) {
+      stop_point <- sample(round(total_cards / 8):round(total_cards / 4), 1)
+      game[['deck']] <- shuffle_cards(num_decks = num_decks)
+      game[['running_count']] <- 0
+      game[['true_count']] <- 0
+    }
+  }
+  game[['chip_counts']] <- chip_counts
+  return(game)
+}

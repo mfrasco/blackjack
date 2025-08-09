@@ -2,7 +2,7 @@
 % Please edit documentation in R/strategy.R
 \name{determine_player_action}
 \alias{determine_player_action}
-\title{Determine what decision a player should make}
+\title{Determine what decision a player should make when dealt cards}
 \usage{
 determine_player_action(player_hand, dealer_hand)
 }
@@ -15,5 +15,5 @@ determine_player_action(player_hand, dealer_hand)
 One of 'hit', 'stand', 'double', 'split', or 'surrender'
 }
 \description{
-Determine what decision a player should make
+Determine what decision a player should make when dealt cards
 }

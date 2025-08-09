@@ -13,5 +13,5 @@ should_dealer_hit(hand_total)
 Boolean
 }
 \description{
-Should Dealer Hit
+Dealer hits on a soft 16
 }

@@ -39,7 +39,7 @@ test_that("hand totals are calculated", {
     list(rank='queen', suit='diamonds')
   )
   result <- get_hand_total(hand)
-  expected <- list(total=25, has_ace=TRUE)
+  expected <- list(total=15, has_ace=TRUE)
   expect_equal(result, expected)
 
   hand <- list(

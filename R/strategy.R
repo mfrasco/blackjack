@@ -1,4 +1,41 @@
+#' Get value of card to update the count
+#'
+#' @param card A list containing two attributes: rank and suit
+#'
+#' @return 1, if the rank is 10, J, Q, K, A. -1, if the rank is less than 7. Otherwise, 0.
+#' @export
+count_incrementer <- function(card) {
+  if (!is.numeric(card$rank)) {
+    return(1)
+  }
+  if (card$rank < 7) {
+    return(-1)
+  } else if (card$rank == 10) {
+    return(1)
+  } else {
+    return(0)
+  }
+}
+
+#' Update value of the count based on a new card
+#'
+#' @inheritParams play_round
+#' @inheritParams count_incrementer
+#'
+#' @return A game object
+#' @export
+update_count <- function(game, card) {
+  game[['running_count']] <- game[['running_count']] + count_incrementer(card)
+  # TODO: Figure out what I need to divide by to get the true count
+  game[['true_count']] <- game[['running_count']] / 1
+  return(game)
+}
+
+
+
 #' Should Dealer Hit
+#'
+#' Dealer hits on a soft 16
 #'
 #' @param hand_total A hand total
 #'
@@ -165,7 +202,7 @@ determine_hard_total_strategy <- function(player_total, dealer_total) {
   }
 }
 
-#' Determine what decision a player should make
+#' Determine what decision a player should make when dealt cards
 #'
 #' @param player_hand A list of cards for a single hand
 #' @param dealer_hand A list of cards
@@ -173,6 +210,10 @@ determine_hard_total_strategy <- function(player_total, dealer_total) {
 #' @return One of 'hit', 'stand', 'double', 'split', or 'surrender'
 #' @export
 determine_player_action <- function(player_hand, dealer_hand) {
+  if (length(player_hand) == 1) {
+    return(HIT)
+  }
+
   player_total <- get_hand_total(player_hand)
   visible_dealer_total <- get_hand_total(dealer_hand[1])
 
@@ -197,4 +238,14 @@ determine_player_action <- function(player_hand, dealer_hand) {
   return(action)
 }
 
-
+#' Determine what amount to bet at the beginning of the hand
+#'
+#' @inheritParams play_round
+#'
+#' @return A numeric value
+#' @export
+determine_bet_size <- function(game) {
+  true_count <- game[['true_count']]
+  unit_bet <- 1
+  return(unit_bet)
+}

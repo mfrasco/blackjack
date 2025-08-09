@@ -4,10 +4,13 @@
 \alias{do_player_actions}
 \title{Take Actions For All Players}
 \usage{
-do_player_actions(game)
+do_player_actions(game, verbose = 0)
 }
 \arguments{
 \item{game}{An object that represents all information in the game}
+
+\item{verbose}{An intger that determines how much information is print during
+a simulation. 0 means no information. A higher integer results in more printing.}
 }
 \value{
 An updated game object
