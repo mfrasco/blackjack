@@ -4,10 +4,12 @@
 \alias{create_players}
 \title{Create a table of players}
 \usage{
-create_players(chip_stacks)
+create_players(chip_stacks, betting_units)
 }
 \arguments{
 \item{chip_stacks}{Number of chips for each player}
+
+\item{betting_units}{Size of betting unit for each player}
 }
 \value{
 A list, with the dealer as the final element

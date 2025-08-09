@@ -2,16 +2,18 @@
 % Please edit documentation in R/strategy.R
 \name{determine_bet_size}
 \alias{determine_bet_size}
-\title{Determine what amount to bet at the beginning of the hand}
+\title{How much should a given player bet}
 \usage{
-determine_bet_size(game)
+determine_bet_size(game, player_num)
 }
 \arguments{
 \item{game}{An object that represents all information in the game}
+
+\item{player_num}{The index of the player}
 }
 \value{
-A numeric value
+A number
 }
 \description{
-Determine what amount to bet at the beginning of the hand
+How much should a given player bet
 }

@@ -18,25 +18,33 @@ LOSE <- 'lose'
 #'
 #' @param num_chips Amount of money available to bet
 #'
-#' @return A list with the players role, number of chips, and active hands
+#' @return A list with information about the player
 #' @export
-create_player <- function(num_chips) {
-  return(list(role='player', num_chips=num_chips, hands=list()))
+create_player <- function(num_chips, betting_unit) {
+  return(list(
+    role='player',
+    num_chips=num_chips,
+    betting_unit=betting_unit,
+    hands=list()
+  ))
 }
 
 #' Create a table of players
 #'
 #' Initialize a full table of players, including the dealer
 #'
-#' @param chip_stacks Number of chips for each player
+#' @inheritParams play_rounds
 #'
 #' @return A list, with the dealer as the final element
 #' @export
-create_players <- function(chip_stacks) {
+create_players <- function(chip_stacks, betting_units) {
   players <- list()
   num_players <- length(chip_stacks)
   for (i in 1:num_players) {
-    players[[i]] <- create_player(num_chips=chip_stacks[i])
+    players[[i]] <- create_player(
+      num_chips=chip_stacks[i],
+      betting_unit=betting_units[i]
+    )
   }
   dealer <- list(role='dealer', hands=list())
   players[[i + 1]] <- dealer
@@ -47,15 +55,16 @@ create_players <- function(chip_stacks) {
 #'
 #' Initialize a full table of players, including the dealer, and a random deck
 #'
-#' @inheritParams create_players
+#' @inheritParams play_rounds
 #' @inheritParams shuffle_cards
 #'
 #' @return An object that represents all information in the game
 #' @export
-create_game <- function(chip_stacks, num_decks) {
+create_game <- function(chip_stacks, betting_units, minimum_bet, num_decks) {
   game <- list()
-  game[['players']] <- create_players(chip_stacks = chip_stacks)
+  game[['players']] <- create_players(chip_stacks = chip_stacks, betting_units = betting_units)
   game[['deck']] <- shuffle_cards(num_decks = num_decks)
+  game[['minimum_bet']] <- minimum_bet
   game[['running_count']] <- 0
   game[['true_count']] <- 0
   return(game)
@@ -69,9 +78,9 @@ create_game <- function(chip_stacks, num_decks) {
 #' @export
 place_bets <- function(game) {
   num_players <- length(game[['players']]) - 1
-  bet_size <- determine_bet_size(game)
   for (player_num in 1:num_players) {
     num_chips <- game[['players']][[player_num]][['num_chips']]
+    bet_size <- determine_bet_size(game = game, player_num = player_num)
     game[['players']][[player_num]][['num_chips']] <- num_chips - bet_size
     game[['players']][[player_num]][['bets']] <- bet_size
   }
@@ -367,14 +376,21 @@ record_chip_counts <- function(game) {
 #' Play multiple rounds of blackjack
 #'
 #' @param chip_stacks Number of chips for each player
+#' @param betting_units Size of betting unit for each player
+#' @param minimum_bet Smallest bet allowed on the table
 #' @param num_decks Number of decks of cards to use
 #' @param num_rounds An integer representing the number of rounds to play
 #' @inheritParams play_round
 #'
 #' @return An object that represents all information in the game
 #' @export
-play_rounds <- function(chip_stacks, num_decks, num_rounds, verbose=0) {
-  game <- create_game(chip_stacks = chip_stacks, num_decks = num_decks)
+play_rounds <- function(chip_stacks, betting_units, minimum_bet, num_decks, num_rounds, verbose=0) {
+  game <- create_game(
+    chip_stacks = chip_stacks,
+    betting_units = betting_units,
+    minimum_bet = minimum_bet,
+    num_decks = num_decks
+  )
   total_cards <- length(game[['deck']])
   stop_point <- sample(round(total_cards / 8):round(total_cards / 4), 1)
   num_players <- length(game[['players']]) - 1

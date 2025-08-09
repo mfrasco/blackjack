@@ -26,11 +26,27 @@ count_incrementer <- function(card) {
 #' @export
 update_count <- function(game, card) {
   game[['running_count']] <- game[['running_count']] + count_incrementer(card)
-  # TODO: Figure out what I need to divide by to get the true count
-  game[['true_count']] <- game[['running_count']] / 1
+  game[['true_count']] <- round(game[['running_count']] / length(game[['deck']]))
   return(game)
 }
 
+#' How much should a given player bet
+#'
+#' @inheritParams play_round
+#' @param player_num The index of the player
+#'
+#' @return A number
+#' @export
+determine_bet_size <- function(game, player_num) {
+  true_count <- game[['true_count']]
+  betting_unit <- game[['players']][[player_num]][['betting_unit']]
+  minimum_bet <-
+  if (true_count < 2) {
+    return(game[['minimum_bet']])
+  } else {
+    return((true_count - 1) * betting_unit)
+  }
+}
 
 
 #' Should Dealer Hit
@@ -236,16 +252,4 @@ determine_player_action <- function(player_hand, dealer_hand) {
     )
   }
   return(action)
-}
-
-#' Determine what amount to bet at the beginning of the hand
-#'
-#' @inheritParams play_round
-#'
-#' @return A numeric value
-#' @export
-determine_bet_size <- function(game) {
-  true_count <- game[['true_count']]
-  unit_bet <- 1
-  return(unit_bet)
 }

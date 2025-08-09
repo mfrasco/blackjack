@@ -4,12 +4,16 @@
 \alias{create_game}
 \title{Create a blackjack game}
 \usage{
-create_game(chip_stacks, num_decks)
+create_game(chip_stacks, betting_units, minimum_bet, num_decks)
 }
 \arguments{
 \item{chip_stacks}{Number of chips for each player}
 
-\item{num_decks}{The number of decks you want to include in the shuffle.}
+\item{betting_units}{Size of betting unit for each player}
+
+\item{minimum_bet}{Smallest bet allowed on the table}
+
+\item{num_decks}{Number of decks of cards to use}
 }
 \value{
 An object that represents all information in the game

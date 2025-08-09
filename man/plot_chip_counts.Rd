@@ -10,7 +10,7 @@ plot_chip_counts(chip_counts)
 \item{chip_counts}{A matrix, where each row is a round and each column is a player}
 }
 \value{
-A line plot
+A ggplot object
 }
 \description{
 Plot Chip Counts for Each Player Over Time

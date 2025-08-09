@@ -4,13 +4,13 @@
 \alias{create_player}
 \title{Create a Player}
 \usage{
-create_player(num_chips)
+create_player(num_chips, betting_unit)
 }
 \arguments{
 \item{num_chips}{Amount of money available to bet}
 }
 \value{
-A list with the players role, number of chips, and active hands
+A list with information about the player
 }
 \description{
 Initialize a player with a certain number of chips

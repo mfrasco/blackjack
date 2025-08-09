@@ -4,10 +4,21 @@
 \alias{play_rounds}
 \title{Play multiple rounds of blackjack}
 \usage{
-play_rounds(chip_stacks, num_decks, num_rounds, verbose = 0)
+play_rounds(
+  chip_stacks,
+  betting_units,
+  minimum_bet,
+  num_decks,
+  num_rounds,
+  verbose = 0
+)
 }
 \arguments{
 \item{chip_stacks}{Number of chips for each player}
+
+\item{betting_units}{Size of betting unit for each player}
+
+\item{minimum_bet}{Smallest bet allowed on the table}
 
 \item{num_decks}{Number of decks of cards to use}
 

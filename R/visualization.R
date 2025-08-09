@@ -2,10 +2,26 @@
 #'
 #' @param chip_counts A matrix, where each row is a round and each column is a player
 #'
-#' @return A line plot
+#' @return A ggplot object
+#' @import ggplot2
 #' @export
 plot_chip_counts <- function(chip_counts) {
-  plot(1:nrow(chip_counts), chip_counts[, 1], type='l', col='red', xlab = 'Round Number', ylab = 'Chip Stack')
-  lines(1:nrow(chip_counts), chip_counts[, 2],  col='blue')
-  title('Chip Stacks Over Time')
+  # Convert matrix to long format for ggplot
+  rounds <- 1:nrow(chip_counts)
+  df <- data.frame(
+    round = rep(rounds, ncol(chip_counts)),
+    player = rep(paste("Player", 1:ncol(chip_counts)), each = nrow(chip_counts)),
+    chips = as.vector(chip_counts)
+  )
+  
+  ggplot(df, aes(x = round, y = chips, color = player)) +
+    geom_line(size = 1) +
+    labs(
+      title = "Chip Stacks Over Time",
+      x = "Round Number",
+      y = "Chip Stack",
+      color = "Player"
+    ) +
+    theme_minimal() +
+    theme(legend.position = "right")
 }
